@@ -2,6 +2,7 @@ import simpy
 import random
 import statistics
 import matplotlib.pyplot as plt
+import os
 
 RANDOM_SEED = 42
 PROCESOS = [25, 50, 100, 150, 200]
@@ -28,7 +29,7 @@ def proceso(env, name, ram, cpu, tiempos, instrucciones_por_ciclo):
             
             decision = random.randint(1, 21)
             if decision == 1:
-                yield env.timeout(1)  # I/O
+                yield env.timeout(1)  # Tiempo de I/O
     
     # Liberar RAM
     yield ram.put(memoria_necesaria)
@@ -58,8 +59,10 @@ def correr_simulacion(num_procesos, intervalo, ram_capacidad, cpu_capacidad, ins
     
     return promedio, desviacion
 
-def experimento(nombre, ram_capacidad, cpu_capacidad, instrucciones_por_ciclo):
-    print(f"\n===== {nombre} =====")
+def experimento(nombre_archivo, titulo, ram_capacidad, cpu_capacidad, instrucciones_por_ciclo):
+    print(f"\n===== {titulo} =====")
+    
+    plt.figure()
     
     for intervalo in INTERVALOS:
         promedios = []
@@ -83,33 +86,58 @@ def experimento(nombre, ram_capacidad, cpu_capacidad, instrucciones_por_ciclo):
     
     plt.xlabel("Número de procesos")
     plt.ylabel("Tiempo promedio en el sistema")
-    plt.title(nombre)
+    plt.title(titulo)
     plt.legend()
     plt.grid()
-    plt.show()
+    
+    # Guardar gráfica
+    plt.savefig(f"graficas/{nombre_archivo}.png")
+    plt.close()
 
-# EJECUCIÓN DE TODOS LOS CASOS
+# ----------------------------
+# Crear carpeta de gráficas
+# ----------------------------
+if not os.path.exists("graficas"):
+    os.makedirs("graficas")
+
+# ----------------------------
+# Ejecutar experimentos
+# ----------------------------
 
 # Caso base
-experimento("Caso Base (RAM=100, CPU=1, 3 instrucciones)", 
-            ram_capacidad=100, 
-            cpu_capacidad=1, 
-            instrucciones_por_ciclo=3)
+experimento(
+    nombre_archivo="caso_base",
+    titulo="Caso Base (RAM=100, 1 CPU, 3 instrucciones)",
+    ram_capacidad=100,
+    cpu_capacidad=1,
+    instrucciones_por_ciclo=3
+)
 
-# Más memoria
-experimento("RAM=200", 
-            ram_capacidad=200, 
-            cpu_capacidad=1, 
-            instrucciones_por_ciclo=3)
+# RAM = 200
+experimento(
+    nombre_archivo="ram_200",
+    titulo="RAM = 200",
+    ram_capacidad=200,
+    cpu_capacidad=1,
+    instrucciones_por_ciclo=3
+)
 
 # CPU más rápido
-experimento("CPU más rápido (6 instrucciones)", 
-            ram_capacidad=100, 
-            cpu_capacidad=1, 
-            instrucciones_por_ciclo=6)
+experimento(
+    nombre_archivo="cpu_rapido",
+    titulo="CPU más rápido (6 instrucciones)",
+    ram_capacidad=100,
+    cpu_capacidad=1,
+    instrucciones_por_ciclo=6
+)
 
 # Dos CPUs
-experimento("2 CPUs", 
-            ram_capacidad=100, 
-            cpu_capacidad=2, 
-            instrucciones_por_ciclo=3)
+experimento(
+    nombre_archivo="dos_cpus",
+    titulo="2 CPUs",
+    ram_capacidad=100,
+    cpu_capacidad=2,
+    instrucciones_por_ciclo=3
+)
+
+print("\nSimulación finalizada. Las gráficas fueron guardadas en la carpeta 'graficas'.")
